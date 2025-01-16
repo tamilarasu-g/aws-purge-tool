@@ -15,8 +15,9 @@ else:
 ec2_client = boto3.client('ec2', region_name)
 s3_client = boto3.client('s3', region_name)
 s3_resource = boto3.resource('s3')
+lambda_client = boto3.client('lambda', region_name)
 
-# Delete EC2 Instances
+# Get EC2 Instances
 
 # Array to store the Instance IDs
 instanceIds = []
@@ -47,7 +48,7 @@ for i in response["Reservations"]:
     instance_id = i["Instances"][0]["InstanceId"]
     instanceIds.append(instance_id)
 
-# Delete Buckets
+# Get Buckets
 
 # Get S3 buckets
 s3_client = boto3.client('s3', region_name='us-east-1')
@@ -68,6 +69,22 @@ for response in response["Buckets"]:
     except ClientError as e:
         if e.response['Error']['Code'] == 'NoSuchTagSet':
             print(f"Bucket {bucket} has no tags")
+
+# Get Lambda functions
+
+lambda_functions = []
+
+response = lambda_client.list_functions()
+
+for function in response['Functions']:
+    # print(function)
+    function_name = function['FunctionName']
+    tag_response = lambda_client.list_tags(
+        Resource=function['FunctionArn']
+        )
+    for key,value in tag_response['Tags'].items():
+        if key=='test' and value=='true':
+            lambda_functions.append(function_name)
 
 # Dry Run
 
@@ -97,10 +114,22 @@ def deleteresources():
                 obj_buck.objects.all().delete()
                 obj_buck.delete()
                 exit(0)
+    
+    # Delete Lambda Functions
+    for function in lambda_functions:
+        response = lambda_client.delete_function(
+            FunctionName=function
+        )
+        print(response)
 
 
-print(f"Following instances will be deleted : {instanceIds} ")
-print(f"Following buckets will be deleted : {buckets}")
+if len(instanceIds) ==0 and len(buckets) ==0 and len(lambda_functions) == 0:
+    print(f"No resources with the tag {input_tag}:{input_value} found to delete.")
+    exit(0)
+else:
+    print(f"Following instances will be deleted : {instanceIds} ")
+    print(f"Following buckets will be deleted : {buckets}")
+    print(f"Following lambda functions will be deleted : {lambda_functions}")
 
 decision = input("Do you wish to continue ( y/N ) : ")
 
