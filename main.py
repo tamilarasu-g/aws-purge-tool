@@ -1,6 +1,4 @@
 import boto3
-import datetime
-import json
 from botocore.exceptions import ClientError
 
 # Get the region
