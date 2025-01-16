@@ -11,7 +11,7 @@ if region_input == "":
 else:
     region_name = region_input
 
-# Initialize the client for ec2 and s3
+# Initialize the client for ec2,s3 and lambda
 ec2_client = boto3.client('ec2', region_name)
 s3_client = boto3.client('s3', region_name)
 s3_resource = boto3.resource('s3')
@@ -23,7 +23,11 @@ lambda_client = boto3.client('lambda', region_name)
 instanceIds = []
 
 # Get the tag from input
-input_tag, input_value = input("Enter the tag key and tag value with a space between them : ").split(" ")
+try:
+    input_tag, input_value = input("Enter the tag key and tag value with a space between them : ").split(" ")
+except ValueError:
+    print("Error occurred : Enter two values, one for tag key and one for tag value with a space between them")
+    exit(1)
 
 # Get all the instances using Tags
 response = ec2_client.describe_instances(
