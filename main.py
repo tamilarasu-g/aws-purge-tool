@@ -23,7 +23,7 @@ lambda_client = boto3.client('lambda', region_name)
 instanceIds = []
 
 # Get the tag from input
-input_tag, input_value = input("Enter the tag and value with a space between them : ").split(" ")
+input_tag, input_value = input("Enter the tag key and tag value with a space between them : ").split(" ")
 
 # Get all the instances using Tags
 response = ec2_client.describe_instances(
@@ -83,7 +83,7 @@ for function in response['Functions']:
         Resource=function['FunctionArn']
         )
     for key,value in tag_response['Tags'].items():
-        if key=='test' and value=='true':
+        if key==input_tag and value==input_value:
             lambda_functions.append(function_name)
 
 # Dry Run
