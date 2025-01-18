@@ -111,11 +111,9 @@ def deleteresources():
             if status == "Enabled":
                 obj_buck.object_versions.delete()
                 obj_buck.delete()
-                exit(0)
             else:
                 obj_buck.objects.all().delete()
                 obj_buck.delete()
-                exit(0)
     
     # Delete Lambda Functions
     for function in lambda_functions:
